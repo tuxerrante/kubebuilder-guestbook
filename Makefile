@@ -119,12 +119,20 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
+### --- Test deployment on a temporary cluster
 .PHONY: test-deploy
 test-deploy: manifests kustomize
-	kind create clusters guestbook
-	install
-	deploy
-	kind delete clusters guestbook
+	kind create cluster -n guestbook-testing --config hack/wsl2-kind.yaml &&\
+	echo "---- Nodes" && kubectl get nodes 					&&\
+	echo "---- Deployments"  && kubectl get -A deployment 	&&\
+	echo "---- Daemonset"  && kubectl get -A daemonset		&&\
+	echo "---- Service"  && kubectl get -A service			&&\
+	echo "----"												&&\
+	$(MAKE) install											&&\
+	echo "----"												&&\
+	$(MAKE) deploy											&&\
+	kubectl get all -o yaml > guestbook-testing-deploy.out  ;\
+	kind delete cluster -n guestbook-testing
 
 ##@ Build Dependencies
 

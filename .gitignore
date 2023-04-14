@@ -25,3 +25,6 @@ Dockerfile.cross
 *.swp
 *.swo
 *~
+
+# Current deployment files should not be commited
+hack/wsl2-kind.yaml
